@@ -164,7 +164,7 @@ BOOL PatchInstruction(const char* path)
 
 	// Calculate the address of the jump target
 	DWORD jumpTargetAddress = ntHeader->OptionalHeader.ImageBase + caveSectionHeader->VirtualAddress;
-	DWORD jumpOffset = jumpTargetAddress - (ntHeader->OptionalHeader.ImageBase + entryPointRva + sizeof(5));
+	DWORD jumpOffset = jumpTargetAddress - (ntHeader->OptionalHeader.ImageBase + entryPointRva + sizeof(unsigned char));
 
 	// Patch the entry point with a jump instruction to the .cave section
 	unsigned char bytes[5];
