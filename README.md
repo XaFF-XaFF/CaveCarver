@@ -5,3 +5,5 @@ without affecting the original functionality of the program.
 Our Project instruments code cave by adding an additional Section to the PE file 
 where the shellcode resides in. After patching the PEs EntryPoint the control flow gets redirected to the shellcode.
 
+## Usage
+```CaveCarver.exe path_to_exe path_to_shellcode```
