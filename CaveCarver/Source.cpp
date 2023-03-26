@@ -6,6 +6,7 @@
 #include <iostream>
 #include <filesystem>
 
+// http://www.rohitab.com/discuss/topic/41466-add-a-new-pe-section-code-inside-of-it/
 DWORD align(DWORD size, DWORD align, DWORD addr) {
 	if (!(size % align))
 		return addr + size;
@@ -112,24 +113,24 @@ BOOL PatchInstruction(const char* path)
 	file.read(buffer, fileSize);
 
 	// Get the DOS header
-	IMAGE_DOS_HEADER* dosHeader = reinterpret_cast<IMAGE_DOS_HEADER*>(buffer);
+	PIMAGE_DOS_HEADER dosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(buffer);
 	if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
 		std::cerr << "Invalid DOS signature." << std::endl;
 		return FALSE;
 	}
 
 	// Get the NT headers
-	IMAGE_NT_HEADERS64* ntHeader = reinterpret_cast<IMAGE_NT_HEADERS64*>(buffer + dosHeader->e_lfanew);
+	PIMAGE_NT_HEADERS64 ntHeader = reinterpret_cast<PIMAGE_NT_HEADERS64>(buffer + dosHeader->e_lfanew);
 	if (ntHeader->Signature != IMAGE_NT_SIGNATURE) {
 		std::cerr << "Invalid NT signature." << std::endl;
 		return FALSE;
 	}
 
 	// Get the section headers
-	IMAGE_SECTION_HEADER* sectionHeader = IMAGE_FIRST_SECTION(ntHeader);
+	PIMAGE_SECTION_HEADER sectionHeader = IMAGE_FIRST_SECTION(ntHeader);
 
 	// Find the .cave section
-	IMAGE_SECTION_HEADER* caveSectionHeader = nullptr;
+	PIMAGE_SECTION_HEADER caveSectionHeader = nullptr;
 	for (int i = 0; i < ntHeader->FileHeader.NumberOfSections; i++) {
 		if (strncmp(reinterpret_cast<char*>(sectionHeader[i].Name), ".cave", IMAGE_SIZEOF_SHORT_NAME) == 0) {
 			caveSectionHeader = &sectionHeader[i];
@@ -158,7 +159,7 @@ BOOL PatchInstruction(const char* path)
 
 	if (entryPointOffset == 0) {
 		std::cerr << "Could not find file offset of entry point." << std::endl;
-		return 1;
+		return FALSE;
 	}
 
 	// Calculate the address of the jump target
@@ -189,7 +190,7 @@ BOOL PatchInstruction(const char* path)
 	std::ofstream outputFile("patched.exe", std::ios::binary);
 	if (!outputFile.is_open()) {
 		std::cerr << "Could not create output file." << std::endl;
-		return 1;
+		return FALSE;
 	}
 	outputFile.write(buffer, fileSize);
 
